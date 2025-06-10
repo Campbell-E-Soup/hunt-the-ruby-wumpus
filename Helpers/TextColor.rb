@@ -41,4 +41,8 @@ class TextColor
         return out
     end
 
+    def self.Clear() #clears the terminal
+        print "\e[2J\e[H"
+    end
+
 end

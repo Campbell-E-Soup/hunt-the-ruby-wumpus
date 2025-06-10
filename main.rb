@@ -1,6 +1,8 @@
-require_relative 'Helpers/TextColor'
 require_relative 'Game/Room'
+require_relative 'Game/Player'
 
-rooms = Room.load_rooms
+rooms = Room.load_rooms()
+player = Player.new(rooms)
+Room.assignContents(player,rooms)
 
-rooms["1"].display_connections(rooms)
+player.gameLoop()
