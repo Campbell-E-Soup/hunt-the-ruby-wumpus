@@ -5,4 +5,8 @@ rooms = Room.load_rooms()
 player = Player.new(rooms)
 Room.assignContents(player,rooms)
 
-player.gameLoop()
+Player::displayTitle
+
+while true
+    player.gameLoop()
+end

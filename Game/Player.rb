@@ -2,6 +2,8 @@ require_relative '../Helpers/TextColor'
 require_relative '../Helpers/Input'
 require_relative 'Room'
 
+require 'json'
+
 class Player
     attr_accessor :wumpus
     attr_reader :room
@@ -33,7 +35,7 @@ class Player
             state = doAction(action);
             #resolve wumpus movement
             if state != GameState::VICTORY #the wumpus is not dead
-                if rand(100) > 75 # the wumpus wakes up
+                if rand(100) > 75 # the wumpus wakes up and moves
                     wRoom = @rooms[@wumpus.to_s]
                     newPos = wRoom.connections.sample
                     wRoom.contents = Contents::NOTHING
@@ -124,6 +126,29 @@ class Player
         end
 
         return path
+    end
+
+    def displayFinalMessage(state)
+        case state
+        when GameState::VICTORY
+            puts TextColor::Green("You struck the wum")
+        end
+    end
+
+    def self.displayTitle()
+        file_path = File.expand_path('../logo.json', __dir__)
+        data = JSON.parse(File.read(file_path))
+
+        animation = data["animation"]
+        TextColor::Clear()
+        animation.each_with_index do |frame, index|
+            puts TextColor::Red(frame)
+            sleep(0.1)
+
+            # Move cursor up by the number of lines in the frame (count the lines)
+            line_count = frame.count("\n") + 1
+            print "\e[#{line_count}A" unless index == animation.size - 1
+        end
     end
 end
 
