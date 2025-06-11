@@ -50,25 +50,26 @@ class Room
         id = emptyRoomIDs[rand(0...emptyRoomIDs.count)]
         rooms[id.to_s].contents = Contents::WUMPUS
         emptyRoomIDs.delete_at(index)
+        player.wumpus = id
         # position the traps
         index = rand(0...emptyRoomIDs.count)
-        id = emptyRoomIDs[rand(0...emptyRoomIDs.count)]
+        id = emptyRoomIDs[index]
         rooms[id.to_s].contents = Contents::TRAP
         emptyRoomIDs.delete_at(index)
 
         index = rand(0...emptyRoomIDs.count)
-        id = emptyRoomIDs[rand(0...emptyRoomIDs.count)]
+        id = emptyRoomIDs[index]
         rooms[id.to_s].contents = Contents::TRAP
         emptyRoomIDs.delete_at(index)
 
         # position the bats
         index = rand(0...emptyRoomIDs.count)
-        id = emptyRoomIDs[rand(0...emptyRoomIDs.count)]
+        id = emptyRoomIDs[index]
         rooms[id.to_s].contents = Contents::BATS
         emptyRoomIDs.delete_at(index)
 
         index = rand(0...emptyRoomIDs.count)
-        id = emptyRoomIDs[rand(0...emptyRoomIDs.count)]
+        id = emptyRoomIDs[index]
         rooms[id.to_s].contents = Contents::BATS
         emptyRoomIDs.delete_at(index)
     end

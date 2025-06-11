@@ -3,20 +3,20 @@ require_relative '../Helpers/Input'
 require_relative 'Room'
 
 class Player
+    attr_accessor :wumpus
     attr_reader :room
     def initialize(rooms)
         @room = rand(1..20)
         @arrows = 5
         @connections = [],
         @rooms = rooms
+        @wumpus = 0
     end
 
     def gameLoop()
         state = GameState::ONGOING
         while (state == GameState::ONGOING)
-            #TextColor::Clear() #clears all text
             puts TextColor::Yellow("--------------------------------------------------------------")
-            startTurn()
             rm = @rooms[@room.to_s]
             @connections = rm.connections
 
@@ -31,6 +31,21 @@ class Player
             action = Input::Gets("Shoot or move (S/M)?",["s","m","shoot","move"])
 
             state = doAction(action);
+            #resolve wumpus movement
+            if state != GameState::VICTORY #the wumpus is not dead
+                if rand(100) > 75 # the wumpus wakes up
+                    wRoom = @rooms[@wumpus.to_s]
+                    newPos = wRoom.connections.sample
+                    wRoom.contents = Contents::NOTHING
+                    newRoom = @rooms[newPos.to_s]
+                    @wumpus = newPos
+                    newRoom.contents = Contents::WUMPUS
+                    if (@wumpus == @room)
+                        puts TextColor::Red("The wumpus wakes and attacks you!!")
+                        state = GameState::EATEN
+                    end
+                end
+            end
         end
         puts state
     end
@@ -55,12 +70,26 @@ class Player
             end
             return GameState::ONGOING #nothing happens
         else #move
+            moveTo = Input::Gets("Where would you like to move to (#{@connections[0]}, #{@connections[1]}, #{@connections[2]})?",@connections)
+            @room = moveTo.to_i
+            
+            rm = @rooms[moveTo]
 
+            while rm.contents == Contents::BATS
+                @room = rand(1..20)
+                puts TextColor::Red("You encounter a giant bat!\nIt carries you to room ##{@room}!")
+                rm = @rooms[@room.to_s] #check next room
+            end
+
+            case rm.contents
+            when Contents::WUMPUS
+                return GameState::EATEN
+            when Contents::TRAP
+                return GameState::TRAP
+            end
+            
+            return GameState::ONGOING #nothing happens
         end
-    end
-
-    def startTurn() #all the actions (ie. falling into pit bats etc.)
-
     end
 
     def createArrowPath()
