@@ -1,0 +1,1 @@
+Typewriter::outln(TextColor::Red("For now the Wumpus lies in wait..."))

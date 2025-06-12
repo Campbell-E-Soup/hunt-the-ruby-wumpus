@@ -1,5 +1,7 @@
 require_relative '../Helpers/TextColor'
 require_relative '../Helpers/Input'
+require_relative '../Helpers/Typewriter'
+
 require_relative 'Room'
 
 require 'json'
@@ -18,15 +20,15 @@ class Player
     def gameLoop()
         state = GameState::ONGOING
         while (state == GameState::ONGOING)
-            puts TextColor::Yellow("--------------------------------------------------------------")
+            puts TextColor::Yellow("-----------------------------------------------------------------------")
             rm = @rooms[@room.to_s]
             @connections = rm.connections
 
-            puts TextColor::Green("You are in room ##{@room}")
-            print TextColor::Blue("The tunnels lead to rooms: ")
-            print TextColor::Yellow("#{rm.connections[0]} ") #could change colors of each room but, nah they will all be yellow otherwise MY EYES
-            print TextColor::Yellow("#{rm.connections[1]} ")
-            print TextColor::Yellow("#{rm.connections[2]}\n\n")
+            Typewriter::outln(TextColor::Green("You are in room ##{@room}"))
+            Typewriter::out(TextColor::Cyan("The tunnels lead to rooms: "))
+            Typewriter::out(TextColor::Yellow("#{rm.connections[0]} ")) #could change colors of each room but, nah they will all be yellow otherwise MY EYES
+            Typewriter::out(TextColor::Yellow("#{rm.connections[1]} "))
+            Typewriter::out(TextColor::Yellow("#{rm.connections[2]}\n"))
             
             rm.display_connections(@rooms)
 
@@ -34,7 +36,7 @@ class Player
 
             state = doAction(action);
             #resolve wumpus movement
-            if state != GameState::VICTORY #the wumpus is not dead
+            if state == GameState::SHOT #the player shot and failed to hit
                 if rand(100) > 75 # the wumpus wakes up and moves
                     wRoom = @rooms[@wumpus.to_s]
                     newPos = wRoom.connections.sample
@@ -43,13 +45,13 @@ class Player
                     @wumpus = newPos
                     newRoom.contents = Contents::WUMPUS
                     if (@wumpus == @room)
-                        puts TextColor::Red("The wumpus wakes and attacks you!!")
+                        Typewriter::outln(TextColor::Red("The wumpus wakes and attacks you!!"))
                         state = GameState::EATEN
                     end
                 end
             end
         end
-        puts state
+        displayFinalMessage(state)
     end
 
     def doAction(action)
@@ -65,12 +67,12 @@ class Player
                     return GameState::HIT
                 end
             end
-            puts TextColor::Red("You arrow does not hit anything.")
+            Typewriter::outln(TextColor::Red("You arrow does not hit anything."))
             @arrows -= 1
             if @arrows <= 0
                 return GameState::AMMO
             end
-            return GameState::ONGOING #nothing happens
+            return GameState::SHOT #failed to hit anything
         else #move
             moveTo = Input::Gets("Where would you like to move to (#{@connections[0]}, #{@connections[1]}, #{@connections[2]})?",@connections)
             @room = moveTo.to_i
@@ -79,7 +81,7 @@ class Player
 
             while rm.contents == Contents::BATS
                 @room = rand(1..20)
-                puts TextColor::Red("You encounter a giant bat!\nIt carries you to room ##{@room}!")
+                Typewriter::outln(TextColor::Red("You encounter a giant bat!\nIt carries you to room ##{@room}!"))
                 rm = @rooms[@room.to_s] #check next room
             end
 
@@ -110,7 +112,7 @@ class Player
                         path.push(p)
                         break
                     else 
-                        puts TextColor::Red("\nPath must start in an adjacent room.")
+                        Typewriter::outln(TextColor::Red("\nPath must start in an adjacent room."))
                     end
                 else
                     last_room = path[path.length-1]
@@ -131,7 +133,35 @@ class Player
     def displayFinalMessage(state)
         case state
         when GameState::VICTORY
-            puts TextColor::Green("You struck the wum")
+            Typewriter::outln(TextColor::Red("*** THWACK! ***"),fps: 30)
+            Typewriter::outln(TextColor::Green("Your arrow flies true and strikes the #{TextColor::Red("WUMPUS!")}"))
+            Typewriter::outln(TextColor::Green("The beast lets out a final, gurgling roar and collapses."))
+            Typewriter::outln(TextColor::Green("YOU WIN! The #{TextColor::Red("Wumpus")}" + TextColor::Green(" is no more... for now")))
+        when GameState::AMMO
+            Typewriter::outln(TextColor::Red("*** CLICK!! ***"),fps: 30)
+            Typewriter::outln(TextColor::Red("Your last arrow clatters uselessly to the cavern floor"))
+            Typewriter::outln(TextColor::Red("You are out of ammo... and the Wumpus still lives"))
+            Typewriter::outln(TextColor::Red("You were the hunter. Now you're the hunted"))
+        when GameState::HIT
+            Typewriter::outln(TextColor::Red("*** THWACK! ***"),fps: 30)
+            Typewriter::outln(TextColor::Red("Your arrow loops through the tunnels... and finds you"))
+            Typewriter::outln(TextColor::Red("You shot yourself"))
+            Typewriter::outln(TextColor::Red("The Wumpus is impressed. Briefly. Then it eats you"))
+        when GameState::TRAP
+            Typewriter::outln(TextColor::Red("*** CRACK!! ***"),fps: 30)
+            Typewriter::outln(TextColor::Red("The ground gives way beneath you"))
+            Typewriter::outln(TextColor::Red("Cold air rushes past as you fall—"))
+            Typewriter::outln(TextColor::Red("and fall—  and fall..."))
+        when GameState::TRAP
+            Typewriter::outln(TextColor::Red("*** GULP!!! ***"),fps: 30)
+            Typewriter::outln(TextColor::Red("The Wumpus lunges with terrifying speed"))
+            Typewriter::outln(TextColor::Red("You barely have time to scream before everything goes dark"))
+            Typewriter::outln(TextColor::Red("You have been eaten"))
+        else
+            Typewriter::outln(TextColor::Red("*** HOW!!!! ***"),fps: 30)
+            Typewriter::outln(TextColor::Yellow("You should not be seeing this..."))
+            Typewriter::outln(TextColor::Yellow("Honestly this is the real victory"))
+            Typewriter::outln(TextColor::Yellow("Something broke, but hey, my bad code is your gain!"))
         end
     end
 
@@ -141,9 +171,10 @@ class Player
 
         animation = data["animation"]
         TextColor::Clear()
+        fps = 1.0/14
         animation.each_with_index do |frame, index|
             puts TextColor::Red(frame)
-            sleep(0.1)
+            sleep(fps)
 
             # Move cursor up by the number of lines in the frame (count the lines)
             line_count = frame.count("\n") + 1
@@ -159,4 +190,5 @@ module GameState
     TRAP = 2  #oh the pitfalls of being an adventurer... I will see my self out
     AMMO = 3 #you are out of ammo
     HIT = 4 #hit by your own arrow
+    SHOT = 5 #shot the arrow did not hit anything, chance for wumpus to wake
 end

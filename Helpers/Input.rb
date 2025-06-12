@@ -8,7 +8,7 @@ class Input
     # @return [String]
     def self.Gets(question, allowed = nil)
         while true
-            print TextColor::Blue(question + " ")
+            Typewriter::out(TextColor::Cyan(question + " "))
             answer = gets.chomp.strip.downcase
             if allowed.nil?
                 return answer

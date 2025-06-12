@@ -34,11 +34,11 @@ class Room
     def get_message(content)
         case content
         when Contents::WUMPUS
-            puts TextColor.Green("You smell something terrible nearby.")
+            Typewriter::outln(TextColor.Green("You smell something terrible nearby."))
         when Contents::BATS
-            puts TextColor.Blue("You hear a rustling.")
+            Typewriter::outln(TextColor.Blue("You hear a rustling."))
         when Contents::TRAP
-            puts TextColor.Red("You feel a cold wind blowing from a nearby cavern.")
+            Typewriter::outln(TextColor.Red("You feel a cold wind blowing from a nearby cavern."))
         end
     end
 
